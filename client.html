@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0f0f0f">
+<title>Book an Appointment</title>
+<style>
+  :root {
+    --bg: #0f0f0f; --bg2: #1a1a1a; --bg3: #242424;
+    --card: #1e1e1e; --border: rgba(255,255,255,0.08); --border2: rgba(255,255,255,0.14);
+    --gold: #c9a84c; --gold2: #e8c76a;
+    --text: #f0ede8; --text2: #9a9690; --text3: #6a6764;
+    --green: #4caf82; --red: #e05252; --amber: #e09a2e;
+    --radius: 14px; --radius-sm: 9px;
+    --safe-top: env(safe-area-inset-top, 0px); --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; min-height: 100vh; }
+
+  .top-bar { padding: calc(var(--safe-top) + 20px) 20px 16px; text-align: center; border-bottom: 0.5px solid var(--border); }
+  .shop-logo { width: 60px; height: 60px; background: var(--gold); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; }
+  .shop-logo svg { width: 34px; height: 34px; }
+  .shop-name { font-size: 20px; font-weight: 700; letter-spacing: -0.4px; }
+  .shop-sub { font-size: 13px; color: var(--text3); margin-top: 4px; }
+
+  .step-wrap { max-width: 420px; margin: 0 auto; }
+
+  .step { display: none; padding: 20px 16px calc(32px + var(--safe-bottom)); }
+  .step.active { display: block; }
+
+  .step-header { margin-bottom: 20px; }
+  .step-num { font-size: 11px; color: var(--text3); font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; }
+  .step-title { font-size: 22px; font-weight: 700; letter-spacing: -0.4px; margin-top: 4px; }
+  .step-sub { font-size: 14px; color: var(--text2); margin-top: 6px; line-height: 1.5; }
+
+  .input-group { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
+  .input-group label { font-size: 12px; color: var(--text3); font-weight: 500; }
+  .input-group input, .input-group select { background: var(--bg3); border: 0.5px solid var(--border2); border-radius: var(--radius-sm); padding: 13px 14px; font-size: 15px; color: var(--text); width: 100%; -webkit-appearance: none; }
+  .input-group input:focus, .input-group select:focus { outline: none; border-color: var(--gold); }
+  option { background: #1a1a1a; }
+
+  .service-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+  .service-chip { background: var(--card); border-radius: var(--radius-sm); border: 0.5px solid var(--border2); padding: 14px 12px; text-align: center; cursor: pointer; transition: all 0.15s; }
+  .service-chip.selected { background: rgba(201,168,76,0.12); border-color: var(--gold); color: var(--gold); }
+  .service-chip-name { font-size: 13px; font-weight: 600; }
+  .service-chip-dur { font-size: 11px; color: var(--text3); margin-top: 3px; }
+  .service-chip.selected .service-chip-dur { color: rgba(201,168,76,0.6); }
+
+  .time-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px; }
+  .time-chip { background: var(--card); border-radius: var(--radius-sm); border: 0.5px solid var(--border2); padding: 14px 8px; text-align: center; cursor: pointer; transition: all 0.15s; }
+  .time-chip:active { transform: scale(0.96); }
+  .time-chip.selected { background: rgba(201,168,76,0.12); border-color: var(--gold); }
+  .time-chip.taken { opacity: 0.3; pointer-events: none; }
+  .time-chip-main { font-size: 15px; font-weight: 700; color: var(--text); }
+  .time-chip.selected .time-chip-main { color: var(--gold); }
+  .time-chip-ampm { font-size: 11px; color: var(--text3); }
+
+  .confirm-card { background: var(--card); border-radius: var(--radius); border: 0.5px solid var(--border); padding: 18px; margin-bottom: 16px; }
+  .confirm-row { display: flex; align-items: center; justify-content: space-between; padding: 9px 0; border-bottom: 0.5px solid var(--border); }
+  .confirm-row:last-child { border-bottom: none; }
+  .confirm-label { font-size: 13px; color: var(--text3); }
+  .confirm-value { font-size: 14px; font-weight: 600; }
+
+  .btn-gold { width: 100%; padding: 15px; background: var(--gold); border-radius: var(--radius-sm); border: none; color: #0f0f0f; font-size: 15px; font-weight: 700; cursor: pointer; transition: opacity 0.15s; }
+  .btn-gold:active { opacity: 0.8; }
+  .btn-outline { width: 100%; padding: 13px; background: transparent; border-radius: var(--radius-sm); border: 0.5px solid var(--border2); color: var(--text2); font-size: 14px; font-weight: 500; cursor: pointer; margin-top: 8px; }
+  .btn-outline:active { background: var(--bg3); }
+
+  /* Subscribe step */
+  .subscribe-toggle { display: flex; align-items: center; gap: 12px; background: var(--card); border-radius: var(--radius-sm); border: 0.5px solid var(--border); padding: 14px; margin-bottom: 12px; cursor: pointer; }
+  .sub-toggle-text { flex: 1; }
+  .sub-toggle-title { font-size: 14px; font-weight: 500; }
+  .sub-toggle-sub { font-size: 12px; color: var(--text3); margin-top: 2px; }
+  .toggle { width: 44px; height: 26px; background: var(--bg3); border-radius: 13px; position: relative; border: 0.5px solid var(--border2); flex-shrink: 0; transition: background 0.2s; }
+  .toggle.on { background: var(--green); border-color: var(--green); }
+  .toggle::after { content: ''; position: absolute; width: 20px; height: 20px; background: #fff; border-radius: 50%; top: 2px; left: 2px; transition: transform 0.2s; }
+  .toggle.on::after { transform: translateX(18px); }
+
+  /* Success screen */
+  .success-icon { width: 72px; height: 72px; border-radius: 50%; background: rgba(76,175,130,0.15); border: 2px solid rgba(76,175,130,0.4); display: flex; align-items: center; justify-content: center; margin: 40px auto 20px; }
+  .success-icon svg { width: 36px; height: 36px; stroke: var(--green); fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* Progress bar */
+  .progress { display: flex; gap: 4px; padding: 0 16px 0; margin: 12px 0; }
+  .progress-seg { height: 3px; flex: 1; border-radius: 2px; background: var(--border2); transition: background 0.3s; }
+  .progress-seg.done { background: var(--gold); }
+
+  /* Date chips */
+  .date-row { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; margin-bottom: 16px; }
+  .date-row::-webkit-scrollbar { display: none; }
+  .date-ch { flex-shrink: 0; padding: 10px 14px; border-radius: 20px; background: var(--bg3); border: 0.5px solid var(--border); cursor: pointer; text-align: center; transition: all 0.15s; }
+  .date-ch.active { background: var(--gold); border-color: var(--gold); }
+  .date-ch-day { font-size: 10px; color: var(--text2); }
+  .date-ch.active .date-ch-day { color: rgba(15,15,15,0.6); }
+  .date-ch-num { font-size: 17px; font-weight: 700; color: var(--text); }
+  .date-ch.active .date-ch-num { color: #0f0f0f; }
+
+  .sms-note { font-size: 12px; color: var(--text3); text-align: center; padding: 12px 16px; line-height: 1.5; }
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <div class="shop-logo">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#0f0f0f" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M6 3L6 21M18 3L18 21M6 7L18 7M6 12L18 12M6 17L18 17"/>
+    </svg>
+  </div>
+  <div class="shop-name" id="shopNameDisplay">Book an Appointment</div>
+  <div class="shop-sub" id="shopSubDisplay">Select a service to get started</div>
+</div>
+
+<div class="progress" id="progressBar">
+  <div class="progress-seg" id="p0"></div>
+  <div class="progress-seg" id="p1"></div>
+  <div class="progress-seg" id="p2"></div>
+  <div class="progress-seg" id="p3"></div>
+</div>
+
+<div class="step-wrap">
+
+  <!-- Step 1: Your info -->
+  <div class="step active" id="step-0">
+    <div class="step-header">
+      <div class="step-num">Step 1 of 4</div>
+      <div class="step-title">Your info</div>
+      <div class="step-sub">We'll use this to confirm your booking.</div>
+    </div>
+    <div class="input-group">
+      <label>Your name</label>
+      <input type="text" id="clientName" placeholder="First and last name" autocomplete="name">
+    </div>
+    <div class="input-group">
+      <label>Phone number</label>
+      <input type="tel" id="clientPhone" placeholder="+1 (555) 000-0000" autocomplete="tel">
+    </div>
+
+    <div class="subscribe-toggle" onclick="toggleSubscribe()">
+      <div class="sub-toggle-text">
+        <div class="sub-toggle-title">Sign up for text updates</div>
+        <div class="sub-toggle-sub">Get notified when the shop opens & special deals</div>
+      </div>
+      <div class="toggle on" id="subToggle"></div>
+    </div>
+
+    <button class="btn-gold" onclick="goStep(1)">Continue →</button>
+    <p class="sms-note">By continuing you agree to receive booking-related texts. Reply STOP at any time to unsubscribe.</p>
+  </div>
+
+  <!-- Step 2: Service -->
+  <div class="step" id="step-1">
+    <div class="step-header">
+      <div class="step-num">Step 2 of 4</div>
+      <div class="step-title">Choose a service</div>
+    </div>
+    <div class="service-grid" id="serviceGrid"></div>
+    <button class="btn-outline" onclick="goStep(0)">← Back</button>
+  </div>
+
+  <!-- Step 3: Date & time -->
+  <div class="step" id="step-2">
+    <div class="step-header">
+      <div class="step-num">Step 3 of 4</div>
+      <div class="step-title">Pick a time</div>
+    </div>
+    <div class="date-row" id="clientDateRow"></div>
+    <div class="time-grid" id="timeGrid"></div>
+    <button class="btn-outline" onclick="goStep(1)">← Back</button>
+  </div>
+
+  <!-- Step 4: Confirm -->
+  <div class="step" id="step-3">
+    <div class="step-header">
+      <div class="step-num">Step 4 of 4</div>
+      <div class="step-title">Confirm booking</div>
+    </div>
+    <div class="confirm-card">
+      <div class="confirm-row"><span class="confirm-label">Name</span><span class="confirm-value" id="confName">—</span></div>
+      <div class="confirm-row"><span class="confirm-label">Service</span><span class="confirm-value" id="confService">—</span></div>
+      <div class="confirm-row"><span class="confirm-label">Date</span><span class="confirm-value" id="confDate">—</span></div>
+      <div class="confirm-row"><span class="confirm-label">Time</span><span class="confirm-value" id="confTime">—</span></div>
+      <div class="confirm-row"><span class="confirm-label">Phone</span><span class="confirm-value" id="confPhone">—</span></div>
+    </div>
+    <button class="btn-gold" onclick="confirmBooking()">Confirm appointment</button>
+    <button class="btn-outline" onclick="goStep(2)">← Back</button>
+  </div>
+
+  <!-- Step 5: Success -->
+  <div class="step" id="step-4">
+    <div class="success-icon">
+      <svg viewBox="0 0 24 24"><path d="M20 6L9 17L4 12"/></svg>
+    </div>
+    <div style="text-align:center;padding:0 20px">
+      <div style="font-size:22px;font-weight:700;margin-bottom:8px">You're booked!</div>
+      <div style="font-size:14px;color:var(--text2);line-height:1.6;margin-bottom:24px" id="successMsg">Your appointment has been confirmed. We'll send you a reminder before your visit.</div>
+      <button class="btn-outline" onclick="resetFlow()">Book another appointment</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const DB_KEY = 'barberbook_data';
+let barberData = { services: ['Haircut', 'Fade', 'Fade + Beard Trim', 'Lineup', 'Kids Cut'], settings: {}, appointments: [] };
+
+function loadBarberData() {
+  try { const d = localStorage.getItem(DB_KEY); if (d) barberData = JSON.parse(d); } catch(e) {}
+}
+loadBarberData();
+
+if (barberData.settings && barberData.settings.shopName) {
+  document.getElementById('shopNameDisplay').textContent = barberData.settings.shopName;
+  document.getElementById('shopSubDisplay').textContent = (barberData.settings.barberName ? barberData.settings.barberName + ' · ' : '') + 'Book an appointment';
+}
+
+let booking = { name: '', phone: '', service: '', date: '', time: '', subscribe: true };
+let currentStep = 0;
+
+function goStep(n) {
+  if (n === 1 && !validate0()) return;
+  if (n === 2 && !booking.service) { alert('Please choose a service'); return; }
+  if (n === 3 && !booking.time) { alert('Please choose a time'); return; }
+
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+  document.getElementById('step-' + n).classList.add('active');
+  currentStep = n;
+  updateProgress(n);
+  window.scrollTo(0, 0);
+
+  if (n === 2) renderDateAndTime();
+  if (n === 3) fillConfirm();
+}
+
+function updateProgress(n) {
+  for (let i = 0; i < 4; i++) {
+    document.getElementById('p' + i).classList.toggle('done', i <= n);
+  }
+}
+
+function validate0() {
+  const name = document.getElementById('clientName').value.trim();
+  const phone = document.getElementById('clientPhone').value.trim();
+  if (!name) { document.getElementById('clientName').focus(); return false; }
+  if (!phone) { document.getElementById('clientPhone').focus(); return false; }
+  booking.name = name; booking.phone = phone;
+  if (booking.subscribe) {
+    localStorage.setItem('barberbook_new_subscriber', JSON.stringify({ name, phone }));
+  }
+  return true;
+}
+
+function toggleSubscribe() {
+  booking.subscribe = !booking.subscribe;
+  document.getElementById('subToggle').classList.toggle('on', booking.subscribe);
+}
+
+function renderServices() {
+  const grid = document.getElementById('serviceGrid');
+  grid.innerHTML = barberData.services.map(s => `
+    <div class="service-chip ${booking.service === s ? 'selected' : ''}" onclick="selectService('${s}')">
+      <div class="service-chip-name">${s}</div>
+    </div>
+  `).join('');
+}
+renderServices();
+
+function selectService(s) {
+  booking.service = s;
+  renderServices();
+  setTimeout(() => goStep(2), 160);
+}
+
+function todayStr() {
+  const d = new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+
+function renderDateAndTime() {
+  const row = document.getElementById('clientDateRow');
+  if (!booking.date) booking.date = todayStr();
+  row.innerHTML = '';
+  const today = new Date();
+  for (let i = 0; i <= 13; i++) {
+    const d = new Date(today); d.setDate(today.getDate() + i);
+    const str = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    const ch = document.createElement('div');
+    ch.className = 'date-ch' + (str === booking.date ? ' active' : '');
+    ch.innerHTML = `<div class="date-ch-day">${d.toLocaleDateString('en-US',{weekday:'short'})}</div><div class="date-ch-num">${d.getDate()}</div>`;
+    ch.onclick = () => { booking.date = str; booking.time = ''; renderDateAndTime(); };
+    row.appendChild(ch);
+  }
+  renderTimes();
+}
+
+function renderTimes() {
+  const grid = document.getElementById('timeGrid');
+  const open = (barberData.settings && barberData.settings.defaultOpen) || '09:00';
+  const close = (barberData.settings && barberData.settings.defaultClose) || '18:00';
+  const slot = (barberData.settings && barberData.settings.slotDuration) || 60;
+  const takenTimes = (barberData.appointments || [])
+    .filter(a => a.date === booking.date && a.status !== 'cancelled')
+    .map(a => a.time);
+
+  const slots = [];
+  let [oh, om] = open.split(':').map(Number);
+  let [ch, cm] = close.split(':').map(Number);
+  let mins = oh * 60 + om;
+  const endMins = ch * 60 + cm;
+  while (mins + slot <= endMins) {
+    const h = Math.floor(mins / 60), m = mins % 60;
+    const str = String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const h12 = h % 12 || 12;
+    const label = h12 + (m ? ':' + String(m).padStart(2,'0') : '');
+    slots.push({ str, label, ampm, taken: takenTimes.includes(str) });
+    mins += slot;
+  }
+
+  grid.innerHTML = slots.map(s => `
+    <div class="time-chip ${booking.time === s.str ? 'selected' : ''} ${s.taken ? 'taken' : ''}" onclick="selectTime('${s.str}')">
+      <div class="time-chip-main">${s.label}</div>
+      <div class="time-chip-ampm">${s.ampm}</div>
+    </div>
+  `).join('');
+}
+
+function selectTime(t) {
+  booking.time = t;
+  renderTimes();
+  setTimeout(() => goStep(3), 160);
+}
+
+function fillConfirm() {
+  const d = new Date(booking.date + 'T00:00:00');
+  const dateLabel = d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+  const [h, m] = booking.time.split(':').map(Number);
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  const h12 = h % 12 || 12;
+  const timeLabel = h12 + (m ? ':' + String(m).padStart(2,'0') : '') + ' ' + ampm;
+  document.getElementById('confName').textContent = booking.name;
+  document.getElementById('confService').textContent = booking.service;
+  document.getElementById('confDate').textContent = dateLabel;
+  document.getElementById('confTime').textContent = timeLabel;
+  document.getElementById('confPhone').textContent = booking.phone;
+}
+
+function confirmBooking() {
+  const b = { name: booking.name, phone: booking.phone, service: booking.service, date: booking.date, time: booking.time };
+  localStorage.setItem('barberbook_new_booking', JSON.stringify(b));
+  goStep(4);
+  document.getElementById('successMsg').textContent = `We've got you down for ${document.getElementById('confService').textContent} on ${document.getElementById('confDate').textContent} at ${document.getElementById('confTime').textContent}. You'll get a confirmation text shortly.`;
+}
+
+function resetFlow() {
+  booking = { name: '', phone: '', service: '', date: '', time: '', subscribe: true };
+  document.getElementById('clientName').value = '';
+  document.getElementById('clientPhone').value = '';
+  document.getElementById('subToggle').classList.add('on');
+  loadBarberData();
+  renderServices();
+  goStep(0);
+  updateProgress(0);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0f0f0f">
+<title>BarberBook</title>
+<link rel="manifest" href="manifest.json">
+<style>
+  :root {
+    --bg: #0f0f0f;
+    --bg2: #1a1a1a;
+    --bg3: #242424;
+    --card: #1e1e1e;
+    --border: rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.14);
+    --gold: #c9a84c;
+    --gold2: #e8c76a;
+    --text: #f0ede8;
+    --text2: #9a9690;
+    --text3: #6a6764;
+    --green: #4caf82;
+    --red: #e05252;
+    --amber: #e09a2e;
+    --blue: #4a8fd4;
+    --radius: 14px;
+    --radius-sm: 9px;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; min-height: 100vh; overflow-x: hidden; }
+  
+  /* Header */
+  .header { background: var(--bg); border-bottom: 0.5px solid var(--border); padding: calc(var(--safe-top) + 16px) 20px 14px; position: sticky; top: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; }
+  .header-left { display: flex; align-items: center; gap: 10px; }
+  .logo-mark { width: 34px; height: 34px; background: var(--gold); border-radius: 9px; display: flex; align-items: center; justify-content: center; }
+  .logo-mark svg { width: 20px; height: 20px; fill: #0f0f0f; }
+  .header h1 { font-size: 18px; font-weight: 600; letter-spacing: -0.3px; }
+  .header-sub { font-size: 12px; color: var(--text2); margin-top: 1px; }
+  .header-actions { display: flex; gap: 8px; }
+  .icon-btn { width: 36px; height: 36px; border-radius: 10px; background: var(--bg3); border: 0.5px solid var(--border); display: flex; align-items: center; justify-content: center; cursor: pointer; }
+  .icon-btn svg { width: 18px; height: 18px; stroke: var(--text2); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* Nav tabs */
+  .tabs { display: flex; background: var(--bg2); border-bottom: 0.5px solid var(--border); }
+  .tab { flex: 1; padding: 12px 4px; text-align: center; font-size: 12px; font-weight: 500; color: var(--text3); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.15s; }
+  .tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+  /* Screens */
+  .screen { display: none; padding: 16px 16px calc(80px + var(--safe-bottom)); }
+  .screen.active { display: block; }
+
+  /* Section title */
+  .section-title { font-size: 12px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.8px; margin: 20px 0 10px; }
+  .section-title:first-child { margin-top: 4px; }
+
+  /* Stats row */
+  .stats-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 4px; }
+  .stat-card { background: var(--card); border-radius: var(--radius-sm); border: 0.5px solid var(--border); padding: 12px 10px; text-align: center; }
+  .stat-num { font-size: 22px; font-weight: 700; color: var(--text); line-height: 1; }
+  .stat-label { font-size: 11px; color: var(--text3); margin-top: 4px; }
+
+  /* Appointment cards */
+  .appt-card { background: var(--card); border-radius: var(--radius); border: 0.5px solid var(--border); padding: 14px 16px; margin-bottom: 10px; display: flex; align-items: center; gap: 12px; position: relative; overflow: hidden; }
+  .appt-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; }
+  .appt-card.status-confirmed::before { background: var(--green); }
+  .appt-card.status-pending::before { background: var(--amber); }
+  .appt-card.status-cancelled::before { background: var(--red); }
+  .appt-time { text-align: center; min-width: 44px; }
+  .appt-time-main { font-size: 15px; font-weight: 700; color: var(--gold); }
+  .appt-time-ampm { font-size: 10px; color: var(--text3); }
+  .appt-divider { width: 1px; height: 36px; background: var(--border2); flex-shrink: 0; }
+  .appt-info { flex: 1; min-width: 0; }
+  .appt-name { font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .appt-service { font-size: 12px; color: var(--text2); margin-top: 2px; }
+  .appt-actions { display: flex; gap: 6px; }
+  .appt-btn { width: 30px; height: 30px; border-radius: 8px; border: 0.5px solid var(--border2); background: var(--bg3); display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
+  .appt-btn svg { width: 15px; height: 15px; stroke: var(--text2); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .appt-btn.danger { border-color: rgba(224,82,82,0.3); }
+  .appt-btn.danger svg { stroke: var(--red); }
+  .appt-btn.success { border-color: rgba(76,175,130,0.3); }
+  .appt-btn.success svg { stroke: var(--green); }
+
+  /* Date strip */
+  .date-strip { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; margin-bottom: 4px; }
+  .date-strip::-webkit-scrollbar { display: none; }
+  .date-chip { flex-shrink: 0; padding: 8px 14px; border-radius: 20px; background: var(--bg3); border: 0.5px solid var(--border); cursor: pointer; text-align: center; transition: all 0.15s; }
+  .date-chip.active { background: var(--gold); border-color: var(--gold); }
+  .date-chip-day { font-size: 11px; color: var(--text2); }
+  .date-chip.active .date-chip-day { color: rgba(15,15,15,0.7); }
+  .date-chip-num { font-size: 16px; font-weight: 700; color: var(--text); }
+  .date-chip.active .date-chip-num { color: #0f0f0f; }
+  .date-chip-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--gold); margin: 3px auto 0; }
+  .date-chip.active .date-chip-dot { background: rgba(15,15,15,0.4); }
+
+  /* Blast panel */
+  .blast-card { background: var(--card); border-radius: var(--radius); border: 0.5px solid var(--border); padding: 16px; margin-bottom: 12px; }
+  .blast-card h3 { font-size: 14px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .blast-card h3 .badge { font-size: 10px; font-weight: 600; background: rgba(201,168,76,0.15); color: var(--gold); padding: 2px 8px; border-radius: 20px; border: 0.5px solid rgba(201,168,76,0.3); }
+  .time-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+  .input-group { display: flex; flex-direction: column; gap: 4px; }
+  .input-group label { font-size: 11px; color: var(--text3); }
+  .input-group input, .input-group select, .input-group textarea { background: var(--bg3); border: 0.5px solid var(--border2); border-radius: var(--radius-sm); padding: 10px 12px; font-size: 14px; color: var(--text); width: 100%; -webkit-appearance: none; }
+  .input-group textarea { resize: none; min-height: 70px; font-family: inherit; }
+  .input-group input:focus, .input-group select:focus, .input-group textarea:focus { outline: none; border-color: var(--gold); }
+  .btn-gold { width: 100%; padding: 13px; background: var(--gold); border-radius: var(--radius-sm); border: none; color: #0f0f0f; font-size: 14px; font-weight: 700; cursor: pointer; letter-spacing: 0.2px; margin-top: 10px; transition: opacity 0.15s; }
+  .btn-gold:active { opacity: 0.8; }
+  .btn-outline { width: 100%; padding: 12px; background: transparent; border-radius: var(--radius-sm); border: 0.5px solid var(--border2); color: var(--text2); font-size: 14px; font-weight: 500; cursor: pointer; margin-top: 8px; transition: all 0.15s; }
+  .btn-outline:active { background: var(--bg3); }
+
+  /* Subscribers */
+  .sub-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 0.5px solid var(--border); }
+  .sub-row:last-child { border-bottom: none; }
+  .sub-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--bg3); border: 0.5px solid var(--border2); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: var(--gold); flex-shrink: 0; }
+  .sub-info { flex: 1; }
+  .sub-name { font-size: 14px; font-weight: 500; }
+  .sub-phone { font-size: 12px; color: var(--text3); margin-top: 1px; }
+  .sub-badge { font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 20px; }
+  .sub-badge.active { background: rgba(76,175,130,0.15); color: var(--green); border: 0.5px solid rgba(76,175,130,0.3); }
+  .sub-badge.inactive { background: var(--bg3); color: var(--text3); border: 0.5px solid var(--border); }
+
+  /* Settings */
+  .settings-group { background: var(--card); border-radius: var(--radius); border: 0.5px solid var(--border); overflow: hidden; margin-bottom: 12px; }
+  .settings-row { display: flex; align-items: center; padding: 14px 16px; border-bottom: 0.5px solid var(--border); }
+  .settings-row:last-child { border-bottom: none; }
+  .settings-row-icon { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-right: 12px; }
+  .settings-row-icon svg { width: 16px; height: 16px; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .settings-row-text { flex: 1; }
+  .settings-row-title { font-size: 14px; font-weight: 500; }
+  .settings-row-sub { font-size: 12px; color: var(--text3); margin-top: 1px; }
+  .toggle { width: 44px; height: 26px; background: var(--bg3); border-radius: 13px; position: relative; border: 0.5px solid var(--border2); cursor: pointer; transition: background 0.2s; }
+  .toggle.on { background: var(--green); border-color: var(--green); }
+  .toggle::after { content: ''; position: absolute; width: 20px; height: 20px; background: #fff; border-radius: 50%; top: 2px; left: 2px; transition: transform 0.2s; }
+  .toggle.on::after { transform: translateX(18px); }
+
+  /* Bottom nav */
+  .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg2); border-top: 0.5px solid var(--border); padding: 8px 0 calc(var(--safe-bottom) + 8px); display: flex; z-index: 100; }
+  .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; padding: 4px 0; }
+  .nav-item svg { width: 22px; height: 22px; stroke: var(--text3); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; transition: stroke 0.15s; }
+  .nav-item span { font-size: 10px; color: var(--text3); transition: color 0.15s; }
+  .nav-item.active svg { stroke: var(--gold); }
+  .nav-item.active span { color: var(--gold); }
+
+  /* FAB */
+  .fab { position: fixed; right: 20px; bottom: calc(80px + var(--safe-bottom)); width: 52px; height: 52px; border-radius: 50%; background: var(--gold); box-shadow: 0 4px 20px rgba(201,168,76,0.35); display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 99; }
+  .fab svg { width: 24px; height: 24px; stroke: #0f0f0f; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* Toast */
+  .toast { position: fixed; top: calc(var(--safe-top) + 70px); left: 50%; transform: translateX(-50%) translateY(-20px); background: var(--bg3); border: 0.5px solid var(--border2); border-radius: 24px; padding: 10px 20px; font-size: 13px; font-weight: 500; white-space: nowrap; opacity: 0; transition: all 0.3s; z-index: 200; pointer-events: none; }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast.success { border-color: rgba(76,175,130,0.4); color: var(--green); }
+  .toast.gold { border-color: rgba(201,168,76,0.4); color: var(--gold); }
+
+  /* Modal overlay */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 150; display: none; align-items: flex-end; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--bg2); border-radius: 20px 20px 0 0; border-top: 0.5px solid var(--border); width: 100%; padding: 20px 20px calc(var(--safe-bottom) + 20px); max-height: 90vh; overflow-y: auto; }
+  .modal-handle { width: 36px; height: 4px; background: var(--border2); border-radius: 2px; margin: 0 auto 20px; }
+  .modal h2 { font-size: 17px; font-weight: 700; margin-bottom: 16px; }
+
+  /* Booking link card */
+  .link-card { background: linear-gradient(135deg, rgba(201,168,76,0.12) 0%, rgba(201,168,76,0.04) 100%); border-radius: var(--radius); border: 0.5px solid rgba(201,168,76,0.3); padding: 16px; margin-bottom: 12px; display: flex; align-items: center; gap: 14px; }
+  .link-icon { width: 42px; height: 42px; border-radius: 11px; background: rgba(201,168,76,0.2); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .link-icon svg { width: 22px; height: 22px; stroke: var(--gold); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .link-text h3 { font-size: 13px; font-weight: 600; }
+  .link-text p { font-size: 11px; color: var(--text3); margin-top: 2px; }
+  .link-copy { margin-left: auto; flex-shrink: 0; }
+
+  /* Empty state */
+  .empty { text-align: center; padding: 40px 20px; color: var(--text3); }
+  .empty svg { width: 40px; height: 40px; stroke: var(--text3); fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; margin-bottom: 12px; opacity: 0.5; }
+  .empty p { font-size: 14px; }
+
+  /* Status pill */
+  .status-pill { font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 20px; }
+  .status-pill.confirmed { background: rgba(76,175,130,0.15); color: var(--green); border: 0.5px solid rgba(76,175,130,0.3); }
+  .status-pill.pending { background: rgba(224,154,46,0.15); color: var(--amber); border: 0.5px solid rgba(224,154,46,0.3); }
+  .status-pill.cancelled { background: rgba(224,82,82,0.15); color: var(--red); border: 0.5px solid rgba(224,82,82,0.3); }
+
+  /* Separator */
+  .sep { height: 0.5px; background: var(--border); margin: 4px 0 16px; }
+
+  option { background: #1a1a1a; }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .appt-card { animation: fadeIn 0.2s ease both; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-left">
+    <div class="logo-mark">
+      <svg viewBox="0 0 24 24"><path d="M6 3L6 21M18 3L18 21M6 7L18 7M6 12L18 12M6 17L18 17" stroke="#0f0f0f" stroke-width="2.2" stroke-linecap="round" fill="none"/></svg>
+    </div>
+    <div>
+      <div class="header h1" style="font-size:17px;font-weight:700;letter-spacing:-0.3px">BarberBook</div>
+      <div class="header-sub" id="todayDate"></div>
+    </div>
+  </div>
+  <div class="header-actions">
+    <div class="icon-btn" onclick="openModal('newApptModal')">
+      <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+    </div>
+  </div>
+</div>
+
+<!-- Bottom nav -->
+<div class="bottom-nav">
+  <div class="nav-item active" onclick="switchNav('schedule', this)">
+    <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+    <span>Schedule</span>
+  </div>
+  <div class="nav-item" onclick="switchNav('blast', this)">
+    <svg viewBox="0 0 24 24"><path d="M22 2L11 13M22 2L15 22L11 13M11 13L2 9"/></svg>
+    <span>Blast</span>
+  </div>
+  <div class="nav-item" onclick="switchNav('clients', this)">
+    <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    <span>Clients</span>
+  </div>
+  <div class="nav-item" onclick="switchNav('settings', this)">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    <span>Settings</span>
+  </div>
+</div>
+
+<!-- SCREEN: Schedule -->
+<div class="screen active" id="screen-schedule">
+  <div class="section-title">This week</div>
+  <div class="date-strip" id="dateStrip"></div>
+  <div class="sep"></div>
+  <div class="section-title">Appointments <span id="apptCount" style="color:var(--text3);font-weight:400;text-transform:none;letter-spacing:0"></span></div>
+  <div id="apptList"></div>
+</div>
+
+<!-- SCREEN: Blast -->
+<div class="screen" id="screen-blast">
+  <div class="link-card">
+    <div class="link-icon">
+      <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+    </div>
+    <div class="link-text">
+      <h3>Client booking link</h3>
+      <p>Share so clients can sign up & book</p>
+    </div>
+    <div class="link-copy">
+      <div class="icon-btn" onclick="copyLink()">
+        <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="blast-card">
+    <h3>
+      <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:var(--gold);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M22 2L11 13M22 2L15 22L11 13M11 13L2 9"/></svg>
+      Send blast message
+      <span class="badge" id="subCountBadge">0 subscribers</span>
+    </h3>
+
+    <div class="time-row">
+      <div class="input-group">
+        <label>Open from</label>
+        <input type="time" id="blastOpen" value="09:00">
+      </div>
+      <div class="input-group">
+        <label>Until</label>
+        <input type="time" id="blastClose" value="18:00">
+      </div>
+    </div>
+    <div class="input-group" style="margin-bottom:10px">
+      <label>Date</label>
+      <input type="date" id="blastDate">
+    </div>
+    <div class="input-group">
+      <label>Optional message</label>
+      <textarea id="blastMsg" placeholder="e.g. Walk-ins welcome today! Reply BOOK for a slot."></textarea>
+    </div>
+    <button class="btn-gold" onclick="sendBlast()">
+      Send to all subscribers
+    </button>
+    <button class="btn-outline" onclick="previewBlast()">Preview message</button>
+  </div>
+
+  <div class="section-title">Pending replies</div>
+  <div id="pendingReplies"></div>
+</div>
+
+<!-- SCREEN: Clients -->
+<div class="screen" id="screen-clients">
+  <div class="section-title">Subscribers (<span id="subTotal">0</span>)</div>
+  <div class="blast-card" style="padding:12px 14px">
+    <div id="subList"></div>
+  </div>
+  <div class="section-title">Add subscriber manually</div>
+  <div class="blast-card">
+    <div class="input-group" style="margin-bottom:8px">
+      <label>Name</label>
+      <input type="text" id="newSubName" placeholder="Client name">
+    </div>
+    <div class="input-group">
+      <label>Phone</label>
+      <input type="tel" id="newSubPhone" placeholder="+1 (555) 000-0000">
+    </div>
+    <button class="btn-gold" onclick="addSubscriber()">Add subscriber</button>
+  </div>
+</div>
+
+<!-- SCREEN: Settings -->
+<div class="screen" id="screen-settings">
+  <div class="section-title">Shop info</div>
+  <div class="blast-card">
+    <div class="input-group" style="margin-bottom:8px">
+      <label>Shop name</label>
+      <input type="text" id="shopName" placeholder="e.g. Fresh Cuts Barbershop" oninput="saveSettings()">
+    </div>
+    <div class="input-group">
+      <label>Barber name</label>
+      <input type="text" id="barberName" placeholder="Your name" oninput="saveSettings()">
+    </div>
+  </div>
+
+  <div class="section-title">Default hours</div>
+  <div class="blast-card">
+    <div class="time-row">
+      <div class="input-group">
+        <label>Open</label>
+        <input type="time" id="defaultOpen" value="09:00" oninput="saveSettings()">
+      </div>
+      <div class="input-group">
+        <label>Close</label>
+        <input type="time" id="defaultClose" value="18:00" oninput="saveSettings()">
+      </div>
+    </div>
+    <div class="input-group">
+      <label>Appointment slots (minutes)</label>
+      <select id="slotDuration" onchange="saveSettings()">
+        <option value="30">30 min slots</option>
+        <option value="45">45 min slots</option>
+        <option value="60" selected>60 min slots</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="section-title">Twilio SMS (optional)</div>
+  <div class="blast-card">
+    <div class="input-group" style="margin-bottom:8px">
+      <label>Account SID</label>
+      <input type="text" id="twilioSid" placeholder="ACxxxxxxxxxxxxxxxx" oninput="saveSettings()">
+    </div>
+    <div class="input-group" style="margin-bottom:8px">
+      <label>Auth token</label>
+      <input type="password" id="twilioToken" placeholder="••••••••••••••••" oninput="saveSettings()">
+    </div>
+    <div class="input-group">
+      <label>Twilio phone number</label>
+      <input type="tel" id="twilioPhone" placeholder="+15550001234" oninput="saveSettings()">
+    </div>
+    <p style="font-size:11px;color:var(--text3);margin-top:10px;line-height:1.5">When filled in, blasts and notifications send as real SMS. Leave blank to use the web booking link instead.</p>
+  </div>
+
+  <div class="section-title">Services offered</div>
+  <div class="blast-card">
+    <div id="serviceList"></div>
+    <div class="input-group" style="margin-top:8px">
+      <input type="text" id="newService" placeholder="Add a service (e.g. Fade + Lineup)">
+    </div>
+    <button class="btn-outline" onclick="addService()" style="margin-top:8px">+ Add service</button>
+  </div>
+
+  <div class="section-title">Notifications</div>
+  <div class="settings-group">
+    <div class="settings-row">
+      <div class="settings-row-icon" style="background:rgba(76,175,130,0.12)">
+        <svg viewBox="0 0 24 24" style="stroke:var(--green)"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      </div>
+      <div class="settings-row-text">
+        <div class="settings-row-title">New booking alert</div>
+        <div class="settings-row-sub">Notify when client books</div>
+      </div>
+      <div class="toggle on" id="tog1" onclick="this.classList.toggle('on')"></div>
+    </div>
+    <div class="settings-row">
+      <div class="settings-row-icon" style="background:rgba(74,143,212,0.12)">
+        <svg viewBox="0 0 24 24" style="stroke:var(--blue)"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+      </div>
+      <div class="settings-row-text">
+        <div class="settings-row-title">15 min reminder</div>
+        <div class="settings-row-sub">Remind clients before appointment</div>
+      </div>
+      <div class="toggle on" id="tog2" onclick="this.classList.toggle('on')"></div>
+    </div>
+  </div>
+
+  <div style="height:20px"></div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Modal: New Appointment -->
+<div class="modal-overlay" id="newApptModal" onclick="if(event.target===this)closeModal('newApptModal')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h2>New appointment</h2>
+    <div class="input-group" style="margin-bottom:10px">
+      <label>Client name</label>
+      <input type="text" id="newApptName" placeholder="Name">
+    </div>
+    <div class="input-group" style="margin-bottom:10px">
+      <label>Phone (optional)</label>
+      <input type="tel" id="newApptPhone" placeholder="+1 (555) 000-0000">
+    </div>
+    <div class="time-row">
+      <div class="input-group">
+        <label>Date</label>
+        <input type="date" id="newApptDate">
+      </div>
+      <div class="input-group">
+        <label>Time</label>
+        <input type="time" id="newApptTime" value="10:00">
+      </div>
+    </div>
+    <div class="input-group" style="margin-top:10px">
+      <label>Service</label>
+      <select id="newApptService"></select>
+    </div>
+    <button class="btn-gold" style="margin-top:16px" onclick="saveAppt()">Book appointment</button>
+    <button class="btn-outline" onclick="closeModal('newApptModal')">Cancel</button>
+  </div>
+</div>
+
+<!-- Modal: Message client -->
+<div class="modal-overlay" id="msgModal" onclick="if(event.target===this)closeModal('msgModal')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h2 id="msgModalTitle">Message client</h2>
+    <div class="input-group" style="margin-bottom:10px">
+      <label>Quick message</label>
+      <div style="display:grid;gap:6px;margin-bottom:10px">
+        <button class="btn-outline" style="width:100%;text-align:left;padding:10px 12px;font-size:13px" onclick="setMsg('Running about 15 minutes late — see you soon!')">⏱ Running ~15 min late</button>
+        <button class="btn-outline" style="width:100%;text-align:left;padding:10px 12px;font-size:13px" onclick="setMsg('Running about 30 minutes late — sorry for the wait!')">⏱ Running ~30 min late</button>
+        <button class="btn-outline" style="width:100%;text-align:left;padding:10px 12px;font-size:13px" onclick="setMsg('Unfortunately I need to cancel your appointment today. I\'ll reach out to reschedule — sorry for any inconvenience.')">❌ Cancel appointment</button>
+      </div>
+    </div>
+    <div class="input-group">
+      <label>Or write custom</label>
+      <textarea id="msgText" style="min-height:80px" placeholder="Type your message..."></textarea>
+    </div>
+    <button class="btn-gold" style="margin-top:12px" onclick="sendMsg()">Send message</button>
+    <button class="btn-outline" onclick="closeModal('msgModal')">Cancel</button>
+  </div>
+</div>
+
+<!-- Modal: Blast preview -->
+<div class="modal-overlay" id="previewModal" onclick="if(event.target===this)closeModal('previewModal')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h2>Message preview</h2>
+    <div style="background:var(--bg3);border-radius:var(--radius);padding:16px;font-size:14px;line-height:1.6;color:var(--text);border:0.5px solid var(--border2);margin-bottom:16px" id="previewText"></div>
+    <p style="font-size:12px;color:var(--text3);margin-bottom:16px">This is exactly what your subscribers will receive via SMS (when Twilio is connected) or see when they open their booking link.</p>
+    <button class="btn-gold" onclick="closeModal('previewModal');sendBlast(true)">Looks good — send it</button>
+    <button class="btn-outline" onclick="closeModal('previewModal')">Edit</button>
+  </div>
+</div>
+
+<script>
+// ─── State ─────────────────────────────────────────────────────────────────
+const DB_KEY = 'barberbook_data';
+let state = {
+  appointments: [],
+  subscribers: [],
+  services: ['Haircut', 'Fade', 'Fade + Beard Trim', 'Lineup', 'Kids Cut'],
+  settings: { shopName: '', barberName: '', defaultOpen: '09:00', defaultClose: '18:00', slotDuration: 60 },
+  selectedDate: null,
+  selectedApptId: null,
+};
+
+function save() { localStorage.setItem(DB_KEY, JSON.stringify(state)); }
+function load() {
+  try {
+    const d = localStorage.getItem(DB_KEY);
+    if (d) Object.assign(state, JSON.parse(d));
+  } catch(e) {}
+}
+
+// ─── Init ──────────────────────────────────────────────────────────────────
+load();
+state.selectedDate = state.selectedDate || todayStr();
+
+document.getElementById('todayDate').textContent = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+document.getElementById('blastDate').value = todayStr();
+document.getElementById('newApptDate').value = todayStr();
+
+if (state.settings.shopName) document.getElementById('shopName').value = state.settings.shopName;
+if (state.settings.barberName) document.getElementById('barberName').value = state.settings.barberName;
+if (state.settings.defaultOpen) { document.getElementById('defaultOpen').value = state.settings.defaultOpen; document.getElementById('blastOpen').value = state.settings.defaultOpen; }
+if (state.settings.defaultClose) { document.getElementById('defaultClose').value = state.settings.defaultClose; document.getElementById('blastClose').value = state.settings.defaultClose; }
+if (state.settings.slotDuration) document.getElementById('slotDuration').value = state.settings.slotDuration;
+
+renderAll();
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+
+// ─── Helpers ───────────────────────────────────────────────────────────────
+function todayStr() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
+function fmtTime(t) {
+  const [h, m] = t.split(':').map(Number);
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  const h12 = h % 12 || 12;
+  return { main: h12 + (m ? ':' + String(m).padStart(2,'0') : ''), ampm };
+}
+
+function fmtDate(str) {
+  const d = new Date(str + 'T00:00:00');
+  return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+}
+
+function uid() { return Math.random().toString(36).slice(2,9); }
+
+function toast(msg, type='') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show ' + type;
+  setTimeout(() => el.className = 'toast', 2400);
+}
+
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function setMsg(t) { document.getElementById('msgText').value = t; }
+
+// ─── Navigation ────────────────────────────────────────────────────────────
+function switchNav(screen, el) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-'+screen).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// ─── Date strip ────────────────────────────────────────────────────────────
+function renderDateStrip() {
+  const strip = document.getElementById('dateStrip');
+  strip.innerHTML = '';
+  const today = new Date();
+  for (let i = -1; i <= 6; i++) {
+    const d = new Date(today);
+    d.setDate(today.getDate() + i);
+    const str = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    const hasAppts = state.appointments.some(a => a.date === str && a.status !== 'cancelled');
+    const chip = document.createElement('div');
+    chip.className = 'date-chip' + (str === state.selectedDate ? ' active' : '');
+    chip.innerHTML = `
+      <div class="date-chip-day">${d.toLocaleDateString('en-US',{weekday:'short'})}</div>
+      <div class="date-chip-num">${d.getDate()}</div>
+      ${hasAppts ? '<div class="date-chip-dot"></div>' : '<div style="height:7px"></div>'}
+    `;
+    chip.onclick = () => { state.selectedDate = str; save(); renderDateStrip(); renderApptList(); };
+    strip.appendChild(chip);
+  }
+}
+
+// ─── Appointments ──────────────────────────────────────────────────────────
+function renderApptList() {
+  const list = document.getElementById('apptList');
+  const appts = state.appointments
+    .filter(a => a.date === state.selectedDate)
+    .sort((a, b) => a.time.localeCompare(b.time));
+  document.getElementById('apptCount').textContent = appts.length ? `· ${appts.length}` : '';
+  if (!appts.length) {
+    list.innerHTML = `<div class="empty"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg><p>No appointments for this day</p></div>`;
+    return;
+  }
+  list.innerHTML = appts.map(a => {
+    const t = fmtTime(a.time);
+    return `
+    <div class="appt-card status-${a.status}" style="animation-delay:${appts.indexOf(a)*0.04}s">
+      <div class="appt-time">
+        <div class="appt-time-main">${t.main}</div>
+        <div class="appt-time-ampm">${t.ampm}</div>
+      </div>
+      <div class="appt-divider"></div>
+      <div class="appt-info">
+        <div class="appt-name">${a.name}</div>
+        <div class="appt-service">${a.service} <span class="status-pill ${a.status}" style="margin-left:4px">${a.status}</span></div>
+      </div>
+      <div class="appt-actions">
+        <div class="appt-btn success" onclick="confirmAppt('${a.id}')" title="Confirm">
+          <svg viewBox="0 0 24 24"><path d="M20 6L9 17L4 12"/></svg>
+        </div>
+        <div class="appt-btn" onclick="openMsgModal('${a.id}')" title="Message">
+          <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </div>
+        <div class="appt-btn danger" onclick="cancelAppt('${a.id}')" title="Cancel">
+          <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function saveAppt() {
+  const name = document.getElementById('newApptName').value.trim();
+  const phone = document.getElementById('newApptPhone').value.trim();
+  const date = document.getElementById('newApptDate').value;
+  const time = document.getElementById('newApptTime').value;
+  const service = document.getElementById('newApptService').value;
+  if (!name || !date || !time) { toast('Fill in name, date & time'); return; }
+  state.appointments.push({ id: uid(), name, phone, date, time, service, status: 'confirmed' });
+  save();
+  closeModal('newApptModal');
+  state.selectedDate = date;
+  renderAll();
+  toast('Appointment booked!', 'success');
+  document.getElementById('newApptName').value = '';
+  document.getElementById('newApptPhone').value = '';
+}
+
+function confirmAppt(id) {
+  const a = state.appointments.find(x => x.id === id);
+  if (a) { a.status = 'confirmed'; save(); renderAll(); toast('Confirmed ✓', 'success'); }
+}
+
+function cancelAppt(id) {
+  const a = state.appointments.find(x => x.id === id);
+  if (a) { a.status = 'cancelled'; save(); renderAll(); toast('Appointment cancelled'); }
+}
+
+function openMsgModal(id) {
+  state.selectedApptId = id;
+  const a = state.appointments.find(x => x.id === id);
+  if (a) document.getElementById('msgModalTitle').textContent = 'Message ' + a.name;
+  document.getElementById('msgText').value = '';
+  openModal('msgModal');
+}
+
+function sendMsg() {
+  const a = state.appointments.find(x => x.id === state.selectedApptId);
+  const msg = document.getElementById('msgText').value.trim();
+  if (!msg) { toast('Type a message'); return; }
+  const twilio = state.settings.twilioSid && state.settings.twilioToken;
+  closeModal('msgModal');
+  if (twilio && a && a.phone) {
+    sendSMS(a.phone, msg).then(() => toast('Message sent via SMS', 'gold')).catch(() => toast('SMS failed — check Twilio settings'));
+  } else {
+    toast(a && a.phone ? 'SMS ready (add Twilio to send)' : 'Message logged', 'gold');
+  }
+}
+
+// ─── Blast ─────────────────────────────────────────────────────────────────
+function buildBlastMsg() {
+  const open = document.getElementById('blastOpen').value;
+  const close = document.getElementById('blastClose').value;
+  const date = document.getElementById('blastDate').value;
+  const extra = document.getElementById('blastMsg').value.trim();
+  const barber = state.settings.barberName || 'Your barber';
+  const shop = state.settings.shopName || 'the shop';
+  const d = new Date(date + 'T00:00:00');
+  const dateLabel = d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+  const o = fmtTime(open); const c = fmtTime(close);
+  let msg = `Hey! ${barber} here — ${shop} is open this ${dateLabel} from ${o.main} ${o.ampm} to ${c.main} ${c.ampm}.\n\nReply BOOK to get available time slots.`;
+  if (extra) msg += '\n\n' + extra;
+  const bookingUrl = window.location.href.replace('index.html','').replace(/\/$/, '') + '/client.html';
+  msg += `\n\nOr book online: ${bookingUrl}`;
+  return msg;
+}
+
+function previewBlast() {
+  document.getElementById('previewText').textContent = buildBlastMsg();
+  openModal('previewModal');
+}
+
+function sendBlast(confirmed = false) {
+  const subs = state.subscribers.filter(s => s.active);
+  if (!subs.length) { toast('No active subscribers yet'); return; }
+  const msg = buildBlastMsg();
+  const twilio = state.settings.twilioSid && state.settings.twilioToken && state.settings.twilioPhone;
+  if (twilio) {
+    Promise.all(subs.map(s => sendSMS(s.phone, msg)))
+      .then(() => toast(`Blast sent to ${subs.length} subscribers!`, 'gold'))
+      .catch(() => toast('Some messages failed — check Twilio'));
+  } else {
+    toast(`Blast ready! Connect Twilio to send to ${subs.length} subs`, 'gold');
+  }
+  renderPendingReplies(subs);
+}
+
+function renderPendingReplies(subs) {
+  const el = document.getElementById('pendingReplies');
+  if (!subs || !subs.length) { el.innerHTML = '<div class="empty" style="padding:20px 0"><p>No pending replies</p></div>'; return; }
+  el.innerHTML = subs.map(s => `
+    <div class="appt-card status-pending">
+      <div class="appt-info">
+        <div class="appt-name">${s.name}</div>
+        <div class="appt-service">${s.phone} <span class="status-pill pending" style="margin-left:4px">waiting</span></div>
+      </div>
+      <div class="appt-actions">
+        <div class="appt-btn success" onclick="quickBook('${s.id}')" title="Book them in">
+          <svg viewBox="0 0 24 24"><path d="M20 6L9 17L4 12"/></svg>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function quickBook(subId) {
+  const s = state.subscribers.find(x => x.id === subId);
+  if (!s) return;
+  document.getElementById('newApptName').value = s.name;
+  document.getElementById('newApptPhone').value = s.phone;
+  document.getElementById('newApptDate').value = document.getElementById('blastDate').value || todayStr();
+  closeModal('previewModal');
+  openModal('newApptModal');
+}
+
+// ─── Subscribers ───────────────────────────────────────────────────────────
+function renderSubscribers() {
+  const list = document.getElementById('subList');
+  const total = document.getElementById('subTotal');
+  const badge = document.getElementById('subCountBadge');
+  total.textContent = state.subscribers.length;
+  badge.textContent = state.subscribers.filter(s=>s.active).length + ' subscribers';
+  if (!state.subscribers.length) {
+    list.innerHTML = '<div style="padding:16px 0;text-align:center;color:var(--text3);font-size:13px">No subscribers yet — share the booking link</div>';
+    return;
+  }
+  list.innerHTML = state.subscribers.map(s => `
+    <div class="sub-row">
+      <div class="sub-avatar">${s.name.slice(0,2).toUpperCase()}</div>
+      <div class="sub-info">
+        <div class="sub-name">${s.name}</div>
+        <div class="sub-phone">${s.phone}</div>
+      </div>
+      <span class="sub-badge ${s.active ? 'active' : 'inactive'}" onclick="toggleSub('${s.id}')">${s.active ? 'Active' : 'Off'}</span>
+    </div>
+  `).join('');
+}
+
+function addSubscriber() {
+  const name = document.getElementById('newSubName').value.trim();
+  const phone = document.getElementById('newSubPhone').value.trim();
+  if (!name || !phone) { toast('Name and phone required'); return; }
+  if (state.subscribers.find(s => s.phone === phone)) { toast('Already subscribed'); return; }
+  state.subscribers.push({ id: uid(), name, phone, active: true, joined: Date.now() });
+  save(); renderSubscribers();
+  document.getElementById('newSubName').value = '';
+  document.getElementById('newSubPhone').value = '';
+  toast(name + ' added!', 'success');
+}
+
+function toggleSub(id) {
+  const s = state.subscribers.find(x => x.id === id);
+  if (s) { s.active = !s.active; save(); renderSubscribers(); }
+}
+
+// ─── Services ──────────────────────────────────────────────────────────────
+function renderServices() {
+  const list = document.getElementById('serviceList');
+  const sel = document.getElementById('newApptService');
+  list.innerHTML = state.services.map((s, i) => `
+    <div style="display:flex;align-items:center;padding:8px 0;border-bottom:0.5px solid var(--border)">
+      <span style="flex:1;font-size:14px">${s}</span>
+      <div class="appt-btn danger" style="width:26px;height:26px" onclick="removeService(${i})">
+        <svg viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </div>
+    </div>
+  `).join('');
+  sel.innerHTML = state.services.map(s => `<option value="${s}">${s}</option>`).join('');
+}
+
+function addService() {
+  const val = document.getElementById('newService').value.trim();
+  if (!val) return;
+  state.services.push(val);
+  document.getElementById('newService').value = '';
+  save(); renderServices();
+}
+
+function removeService(i) {
+  state.services.splice(i, 1);
+  save(); renderServices();
+}
+
+// ─── Settings ──────────────────────────────────────────────────────────────
+function saveSettings() {
+  state.settings.shopName = document.getElementById('shopName').value;
+  state.settings.barberName = document.getElementById('barberName').value;
+  state.settings.defaultOpen = document.getElementById('defaultOpen').value;
+  state.settings.defaultClose = document.getElementById('defaultClose').value;
+  state.settings.slotDuration = parseInt(document.getElementById('slotDuration').value);
+  state.settings.twilioSid = document.getElementById('twilioSid').value;
+  state.settings.twilioToken = document.getElementById('twilioToken').value;
+  state.settings.twilioPhone = document.getElementById('twilioPhone').value;
+  save();
+}
+
+// ─── Twilio ────────────────────────────────────────────────────────────────
+async function sendSMS(to, body) {
+  const { twilioSid, twilioToken, twilioPhone } = state.settings;
+  const res = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${twilioSid}/Messages.json`, {
+    method: 'POST',
+    headers: { 'Authorization': 'Basic ' + btoa(twilioSid+':'+twilioToken), 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ To: to, From: twilioPhone, Body: body })
+  });
+  if (!res.ok) throw new Error('SMS failed');
+}
+
+// ─── Copy link ─────────────────────────────────────────────────────────────
+function copyLink() {
+  const url = window.location.href.replace('index.html','client.html').replace(/([^/])$/, '$1/client.html').replace('//client.html', '/client.html');
+  const final = window.location.origin + window.location.pathname.replace('index.html','') + 'client.html';
+  navigator.clipboard.writeText(final).then(() => toast('Link copied!', 'gold')).catch(() => toast('Copy the URL manually'));
+}
+
+// ─── Incoming booking from client page ─────────────────────────────────────
+window.addEventListener('storage', e => {
+  if (e.key === 'barberbook_new_booking') {
+    try {
+      const b = JSON.parse(e.newValue);
+      state.appointments.push({ id: uid(), name: b.name, phone: b.phone, date: b.date, time: b.time, service: b.service, status: 'pending' });
+      save(); renderAll();
+      toast('New booking from ' + b.name + '!', 'gold');
+    } catch(e) {}
+  }
+  if (e.key === 'barberbook_new_subscriber') {
+    try {
+      const s = JSON.parse(e.newValue);
+      if (!state.subscribers.find(x => x.phone === s.phone)) {
+        state.subscribers.push({ id: uid(), name: s.name, phone: s.phone, active: true, joined: Date.now() });
+        save(); renderSubscribers();
+        toast(s.name + ' subscribed!', 'success');
+      }
+    } catch(e) {}
+  }
+});
+
+// ─── Render all ────────────────────────────────────────────────────────────
+function renderAll() {
+  renderDateStrip();
+  renderApptList();
+  renderSubscribers();
+  renderServices();
+  renderPendingReplies([]);
+}
+</script>
+</body>
+</html>
